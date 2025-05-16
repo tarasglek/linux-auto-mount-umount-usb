@@ -17,10 +17,8 @@ setup_instructions()
     SCRIPT_PATH=$(realpath "$0")
     cat <<EOF
 
-This script requires systemd/udev setup. Config needed:
-
-/etc/systemd/system/usb-mount@.service:
----------------------------------------
+# Create systemd service unit
+sudo tee /etc/systemd/system/usb-mount@.service >/dev/null <<SVC_EOF
 [Unit]
 Description=Mount USB Drive on %i
 
@@ -29,13 +27,15 @@ Type=oneshot
 RemainAfterExit=true
 ExecStart=${SCRIPT_PATH} add %i
 ExecStop=${SCRIPT_PATH} remove %i
+SVC_EOF
 
-/etc/udev/rules.d/99-local.rules:
----------------------------------------
+# Create udev rules
+sudo tee -a /etc/udev/rules.d/99-local.rules >/dev/null <<UDEV_EOF
 KERNEL=="sd[a-z]*", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/bin/systemctl start usb-mount@%k.service"
 KERNEL=="sd[a-z]*", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/bin/systemctl stop usb-mount@%k.service"
+UDEV_EOF
 
-Then run:
+# Reload configurations
 sudo udevadm control --reload-rules
 sudo systemctl daemon-reload
 EOF
