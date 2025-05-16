@@ -9,6 +9,7 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 usage()
 {
     echo "Usage: $0 {add|remove} device_name (e.g. sdb1 or sdb)"
+    echo "       $0 uninstall"
 }
 
 setup_instructions()
@@ -45,7 +46,33 @@ EOF
     exit 1
 }
 
-if [[ $# -ne 2 ]]; then
+uninstall_instructions()
+{
+    cat <<EOF
+
+# COMPLETELY REMOVE AUTO-MOUNTING - Run these commands:
+
+# 1. Remove systemd service
+sudo rm -f /etc/systemd/system/usb-mount@.service
+
+# 2. Remove udev rules
+sudo rm -f /etc/udev/rules.d/99-local.rules
+
+# 3. Refresh system services
+sudo udevadm control --reload-rules
+sudo systemctl daemon-reload
+
+# 4. Optional: Remove mount directories (if empty)
+sudo rmdir /media/* 2>/dev/null
+
+echo "Uninstall complete! USB auto-mounting removed"
+EOF
+    exit 1
+}
+
+if [[ $# -eq 1 && "$1" == "uninstall" ]]; then
+    uninstall_instructions
+elif [[ $# -ne 2 ]]; then
     usage
     setup_instructions
     exit 1
