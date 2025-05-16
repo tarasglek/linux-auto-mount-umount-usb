@@ -9,7 +9,6 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 usage()
 {
     echo "Usage: $0 {add|remove} device_name (e.g. sdb1 or sdb)"
-    exit 1
 }
 
 setup_instructions()
@@ -45,6 +44,7 @@ EOF
 if [[ $# -ne 2 ]]; then
     usage
     setup_instructions
+    exit 1
 fi
 
 ACTION=$1
