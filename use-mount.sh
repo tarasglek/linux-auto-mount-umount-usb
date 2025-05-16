@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Resolve script location
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
 # This script is called from our systemd unit file to mount or unmount
 # a USB drive.
 
@@ -11,6 +14,7 @@ usage()
 
 setup_instructions()
 {
+    SCRIPT_PATH=$(realpath "$0")
     cat <<EOF
 
 This script requires systemd/udev setup. Config needed:
@@ -23,8 +27,8 @@ Description=Mount USB Drive on %i
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/usr/local/bin/usb-mount.sh add %i
-ExecStop=/usr/local/bin/usb-mount.sh remove %i
+ExecStart=${SCRIPT_PATH} add %i
+ExecStop=${SCRIPT_PATH} remove %i
 
 /etc/udev/rules.d/99-local.rules:
 ---------------------------------------
