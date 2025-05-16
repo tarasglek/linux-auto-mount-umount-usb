@@ -64,8 +64,10 @@ do_mount()
     # Figure out a mount point to use
     LABEL=${ID_FS_LABEL}
     if [[ -z "${LABEL}" ]]; then
-        LABEL=$(echo ${DEVBASE} | tr -d '[0-9]')  # Remove partition numbers for base device
-    elif /bin/grep -q " /media/${LABEL} " /etc/mtab; then
+        LABEL="${DEVBASE}"
+    fi
+    
+    if /bin/grep -q " /media/${LABEL} " /etc/mtab; then
         # Already in use, make a unique one
         LABEL+="-${DEVBASE}"
     fi
