@@ -1,8 +1,3 @@
-# Work in Raspberry pi 3, 4
-
-## sudo nano /usr/local/bin/usb-mount.sh
-* permission 0755 / rwxr-xr-x
-```sh
 #!/bin/bash
 
 # This script is called from our systemd unit file to mount or unmount
@@ -100,23 +95,3 @@ case "${ACTION}" in
         usage
         ;;
 esac
-```
-## sudo nano /etc/systemd/system/usb-mount@.service
-```
-[Unit]
-Description=Mount USB Drive on %i
-
-[Service]
-Type=oneshot
-RemainAfterExit=true
-ExecStart=/usr/local/bin/usb-mount.sh add %i
-ExecStop=/usr/local/bin/usb-mount.sh remove %i
-```
-## sudo nano /etc/udev/rules.d/99-local.rules
-```
-KERNEL=="sd[a-z][0-9]", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/bin/systemctl start usb-mount@%k.service"
-KERNEL=="sd[a-z][0-9]", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/bin/systemctl stop usb-mount@%k.service"
-```
-## Finally
-* sudo udevadm control --reload-rules
-* sudo systemctl daemon-reload
