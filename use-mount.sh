@@ -5,7 +5,7 @@
 
 usage()
 {
-    echo "Usage: $0 {add|remove} device_name (e.g. sdb1)"
+    echo "Usage: $0 {add|remove} device_name (e.g. sdb1 or sdb)"
     exit 1
 }
 
@@ -28,8 +28,8 @@ ExecStop=/usr/local/bin/usb-mount.sh remove %i
 
 /etc/udev/rules.d/99-local.rules:
 ---------------------------------------
-KERNEL=="sd[a-z][0-9]", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/bin/systemctl start usb-mount@%k.service"
-KERNEL=="sd[a-z][0-9]", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/bin/systemctl stop usb-mount@%k.service"
+KERNEL=="sd[a-z]*", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/bin/systemctl start usb-mount@%k.service"
+KERNEL=="sd[a-z]*", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/bin/systemctl stop usb-mount@%k.service"
 
 Then run:
 sudo udevadm control --reload-rules
@@ -49,7 +49,7 @@ DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
 
 # See if this drive is already mounted, and if so where
-MOUNT_POINT=$(/bin/mount | /bin/grep ${DEVICE} | /usr/bin/awk '{ print $3 }')
+MOUNT_POINT=$(/bin/mount | /bin/grep "^${DEVICE} " | /usr/bin/awk '{ print $3 }')
 
 do_mount()
 {
@@ -64,7 +64,7 @@ do_mount()
     # Figure out a mount point to use
     LABEL=${ID_FS_LABEL}
     if [[ -z "${LABEL}" ]]; then
-        LABEL=${DEVBASE}
+        LABEL=$(echo ${DEVBASE} | tr -d '[0-9]')  # Remove partition numbers for base device
     elif /bin/grep -q " /media/${LABEL} " /etc/mtab; then
         # Already in use, make a unique one
         LABEL+="-${DEVBASE}"
