@@ -9,7 +9,38 @@ usage()
     exit 1
 }
 
-if [[ $# -ne 2 ]]; then
+setup_instructions()
+{
+    cat <<EOF
+
+This script requires systemd/udev setup. Config needed:
+
+/etc/systemd/system/usb-mount@.service:
+---------------------------------------
+[Unit]
+Description=Mount USB Drive on %i
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/bin/usb-mount.sh add %i
+ExecStop=/usr/local/bin/usb-mount.sh remove %i
+
+/etc/udev/rules.d/99-local.rules:
+---------------------------------------
+KERNEL=="sd[a-z][0-9]", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/bin/systemctl start usb-mount@%k.service"
+KERNEL=="sd[a-z][0-9]", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/bin/systemctl stop usb-mount@%k.service"
+
+Then run:
+sudo udevadm control --reload-rules
+sudo systemctl daemon-reload
+EOF
+    exit 1
+}
+
+if [[ $# -eq 0 ]]; then
+    setup_instructions
+elif [[ $# -ne 2 ]]; then
     usage
 fi
 
