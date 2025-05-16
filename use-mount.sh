@@ -16,7 +16,9 @@ setup_instructions()
     SCRIPT_PATH=$(realpath "$0")
     cat <<EOF
 
-# Create systemd service unit
+# FIRST-TIME SETUP REQUIRED - Run these commands to enable automatic mounting:
+
+# 1. Create the mounting service
 sudo tee /etc/systemd/system/usb-mount@.service >/dev/null <<SVC_EOF
 [Unit]
 Description=Mount USB Drive on %i
@@ -28,15 +30,17 @@ ExecStart=${SCRIPT_PATH} add %i
 ExecStop=${SCRIPT_PATH} remove %i
 SVC_EOF
 
-# Create udev rules
-sudo tee -a /etc/udev/rules.d/99-local.rules >/dev/null <<UDEV_EOF
+# 2. Add USB detection rules
+sudo tee /etc/udev/rules.d/99-local.rules >/dev/null <<UDEV_EOF
 KERNEL=="sd[a-z]*", SUBSYSTEMS=="usb", ACTION=="add", RUN+="/bin/systemctl start usb-mount@%k.service"
 KERNEL=="sd[a-z]*", SUBSYSTEMS=="usb", ACTION=="remove", RUN+="/bin/systemctl stop usb-mount@%k.service"
 UDEV_EOF
 
-# Reload configurations
+# 3. Refresh system services
 sudo udevadm control --reload-rules
 sudo systemctl daemon-reload
+
+echo "Setup complete! USB drives will now auto-mount"
 EOF
     exit 1
 }
