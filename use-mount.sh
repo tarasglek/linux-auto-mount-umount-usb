@@ -42,10 +42,9 @@ EOF
     exit 1
 }
 
-if [[ $# -eq 0 ]]; then
-    setup_instructions
-elif [[ $# -ne 2 ]]; then
+if [[ $# -ne 2 ]]; then
     usage
+    setup_instructions
 fi
 
 ACTION=$1
