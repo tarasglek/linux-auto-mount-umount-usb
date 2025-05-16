@@ -69,15 +69,21 @@ do_mount()
     eval $(/sbin/blkid -o udev ${DEVICE})
 
     # Figure out a mount point to use
-    LABEL=${ID_FS_LABEL}
-    if [[ -z "${LABEL}" ]]; then
-        LABEL="${DEVBASE}"
+    if [[ -n "${ID_FS_LABEL}" ]]; then
+        BASE_LABEL="${ID_FS_LABEL}"
+    else
+        BASE_LABEL="${DEVBASE}"
     fi
-    
-    if /bin/grep -q " /media/${LABEL} " /etc/mtab; then
-        # Already in use, make a unique one
-        LABEL+="-${DEVBASE}"
-    fi
+
+    LABEL="${BASE_LABEL}"
+    SUFFIX=1
+
+    # Find unique mount point name
+    while /bin/grep -q " /media/${LABEL} " /etc/mtab; do
+        LABEL="${BASE_LABEL}-${SUFFIX}"
+        ((SUFFIX++))
+    done
+
     MOUNT_POINT="/media/${LABEL}"
 
     echo "Mount point: ${MOUNT_POINT}"
